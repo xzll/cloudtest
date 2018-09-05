@@ -62,6 +62,7 @@ public class FileService {
                 return new ResponseMessage(1,"转换成功");
             } else {
                 tempFile.delete();
+                Files.deleteIfExists(Paths.get(pdf));
                 return new ResponseMessage(0,"转换失败");
             }
         } catch (IOException e) {
