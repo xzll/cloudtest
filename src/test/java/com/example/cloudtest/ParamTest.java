@@ -22,7 +22,7 @@ public class ParamTest {
 //        System.out.println(System.getProperty("sun.jnu.encoding"));
 //        System.out.println(System.getProperty("file.encoding"));
 
-        WkHtmlToPdf.transform("--load-error-handling ignore D:/aim/text.mhtml d:/test.pdf");
+        WkHtmlToPdf.transform("E:\\pro\\wkhtmltopdf\\bin\\wkhtmltopdf.exe ","--load-error-handling ignore D:\\test.html d:\\test.pdf");
 //        if(Paths.get("d").toFile().exists()){
 //            System.out.println("exists");
 //        }
