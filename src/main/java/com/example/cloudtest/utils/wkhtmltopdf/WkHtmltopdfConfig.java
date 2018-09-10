@@ -9,7 +9,7 @@ import java.io.IOException;
 public class WkHtmltopdfConfig {
     public static final Logger logger = LoggerFactory.getLogger(WkHtmltopdfConfig.class);
     public static final String executor = findExecutor();
-    public static final Long timeout = 180L;//等待时间 s
+    public static final Long timeout = 100L;//等待时间 s
     /**
      * 从当前目录和环境变量中找wkhtmltopdf的执行文件的绝对路径
      * @return wkhtmltopdf执行文件绝对路径

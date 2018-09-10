@@ -5,7 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.io.InputStream;
+import java.util.concurrent.*;
 
 public class WkHtmlToPdf {
     public static final Logger logger = LoggerFactory.getLogger(WkHtmlToPdf.class);
@@ -13,12 +14,12 @@ public class WkHtmlToPdf {
 
     public static boolean transform(String executor, String cmd) {
 
-        return execute(executor + cmd);
+        return execute(executor + "--load-error-handling ignore " + cmd);
     }
 
     public static boolean transform(String cmd) {
 
-        return execute(WkHtmltopdfConfig.executor + cmd);
+        return execute(WkHtmltopdfConfig.executor + "--load-error-handling ignore " + cmd);
     }
 
     private static boolean execute(String cmd) {
@@ -26,16 +27,29 @@ public class WkHtmlToPdf {
             logger.info("执行命令: {}", cmd);
 
             Process process = Runtime.getRuntime().exec(cmd);
+            String message = IOUtils.toString(process.getErrorStream(), System.getProperty("sun.jnu.encoding"));//需要从缓冲区中读出数据否则满了会堵塞
 //            process.waitFor(WkHtmltopdfConfig.timeout,TimeUnit.SECONDS);
             if(!process.waitFor(WkHtmltopdfConfig.timeout,TimeUnit.SECONDS)){
                 logger.error("超时");
-//                process.destroy();
+                //杀死进程
+                process.destroy();//不管用
+                Thread.sleep(1000);
+                if(process.isAlive()) {
+                    process.destroyForcibly();
+                }
+//                while(process.isAlive());
+//              killWkProcess();
                 return false;
             }
+//            Executor executor=Executors.newSingleThreadExecutor();
+//            byte[] bytes = new FutureTask<byte[]>(new Callable<byte[]>() {
+//                public byte[] call() throws Exception {
+//                    return IOUtils.toByteArray(process.getErrorStream());
+//                }
+//            }).get();
 
-            String message = IOUtils.toString(process.getErrorStream(), System.getProperty("sun.jnu.encoding"));
 
-            if (process.exitValue() == 0) {
+            if (message.contains("Done ")) {// \nDone 就不行
                 logger.info("命令: {}\n{}\n转换成功!", cmd, message);
                 return true;
             } else {
@@ -48,6 +62,20 @@ public class WkHtmlToPdf {
         } catch (IOException e) {
             logger.error("ERROR", e);
         }
+//        catch (ExecutionException e) {
+//            logger.error("ERROR", e);
+//        }
         return false;
+    }
+    private void killWkProcess() {
+        //https://stackoverflow.com/questions/6356340/killing-a-process-using-java
+    }
+
+    private Callable<byte[]> streamToByteArrayTask(final InputStream input) {//final?
+        return new Callable<byte[]>() {
+            public byte[] call() throws Exception {
+                return IOUtils.toByteArray(input);
+            }
+        };
     }
 }
