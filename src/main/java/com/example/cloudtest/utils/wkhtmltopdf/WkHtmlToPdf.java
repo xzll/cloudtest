@@ -27,29 +27,20 @@ public class WkHtmlToPdf {
             logger.info("执行命令: {}", cmd);
 
             Process process = Runtime.getRuntime().exec(cmd);
-            String message = IOUtils.toString(process.getErrorStream(), System.getProperty("sun.jnu.encoding"));//需要从缓冲区中读出数据否则满了会堵塞
-//            process.waitFor(WkHtmltopdfConfig.timeout,TimeUnit.SECONDS);
+            String message = IOUtils.toString(process.getErrorStream(), System.getProperty("sun.jnu.encoding"));//需要从缓冲区中读出数据否则满了会堵塞，不应该放在waitfor后面
             if(!process.waitFor(WkHtmltopdfConfig.timeout,TimeUnit.SECONDS)){
                 logger.error("超时");
                 //杀死进程
-                process.destroy();//不管用
+                process.destroy();
                 Thread.sleep(1000);
                 if(process.isAlive()) {
-                    process.destroyForcibly();
+                    process.destroyForcibly();//如果还存活强制销毁
                 }
-//                while(process.isAlive());
-//              killWkProcess();
                 return false;
             }
-//            Executor executor=Executors.newSingleThreadExecutor();
-//            byte[] bytes = new FutureTask<byte[]>(new Callable<byte[]>() {
-//                public byte[] call() throws Exception {
-//                    return IOUtils.toByteArray(process.getErrorStream());
-//                }
-//            }).get();
 
 
-            if (message.contains("Done ")) {// \nDone 就不行
+            if (message.contains("Done ")) {//有文件输出的话，信息最后都会有Done
                 logger.info("命令: {}\n{}\n转换成功!", cmd, message);
                 return true;
             } else {
@@ -62,20 +53,6 @@ public class WkHtmlToPdf {
         } catch (IOException e) {
             logger.error("ERROR", e);
         }
-//        catch (ExecutionException e) {
-//            logger.error("ERROR", e);
-//        }
         return false;
-    }
-    private void killWkProcess() {
-        //https://stackoverflow.com/questions/6356340/killing-a-process-using-java
-    }
-
-    private Callable<byte[]> streamToByteArrayTask(final InputStream input) {//final?
-        return new Callable<byte[]>() {
-            public byte[] call() throws Exception {
-                return IOUtils.toByteArray(input);
-            }
-        };
     }
 }
